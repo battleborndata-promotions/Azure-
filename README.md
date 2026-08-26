@@ -1,6 +1,6 @@
 # Battle Born Data
 
-Static frontend for the Battle Born Data newsletter signup.
+Static frontend for the Battle Born Data promotion.
 
 ## Local structure
 - `index.html` — page markup
