@@ -9,7 +9,7 @@
       If left blank, this demo stores validated addresses in localStorage
       so the page works immediately without a backend.
     */
-    const FORM_ENDPOINT = "";
+    const FORM_ENDPOINT = "/api/saveEmail";
 
     const form = document.getElementById("newsletterForm");
     const email = document.getElementById("email");
