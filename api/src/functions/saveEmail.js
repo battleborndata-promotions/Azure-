@@ -9,16 +9,61 @@ app.http("saveEmail", {
   handler: async (request, context) => {
     try {
       const body = await request.json();
-      const email = body?.email?.trim().toLowerCase();
 
-      if (!email) {
+      const type = body?.type?.trim().toLowerCase();
+      let value = body?.value?.trim();
+
+      if (!type || !value) {
         return {
           status: 400,
           jsonBody: {
             success: false,
-            message: "Email is required."
+            message: "Signup type and value are required."
           }
         };
+      }
+
+      if (type !== "email" && type !== "phone") {
+        return {
+          status: 400,
+          jsonBody: {
+            success: false,
+            message: "Signup type must be email or phone."
+          }
+        };
+      }
+
+      if (type === "email") {
+        value = value.toLowerCase();
+
+        const emailPattern =
+          /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+        if (!emailPattern.test(value)) {
+          return {
+            status: 400,
+            jsonBody: {
+              success: false,
+              message: "Invalid email address."
+            }
+          };
+        }
+      }
+
+      if (type === "phone") {
+        const digits = value.replace(/\D/g, "");
+
+        if (digits.length < 10 || digits.length > 15) {
+          return {
+            status: 400,
+            jsonBody: {
+              success: false,
+              message: "Invalid phone number."
+            }
+          };
+        }
+
+        value = digits;
       }
 
       const connectionString =
@@ -36,18 +81,20 @@ app.http("saveEmail", {
         };
       }
 
-      // Load Azure Tables only after the function route is already registered.
-      const { TableClient } = require("@azure/data-tables");
+      const { TableClient } =
+        require("@azure/data-tables");
 
-      const tableClient = TableClient.fromConnectionString(
-        connectionString,
-        "newsletter"
-      );
+      const tableClient =
+        TableClient.fromConnectionString(
+          connectionString,
+          "newsletter"
+        );
 
       const entity = {
         partitionKey: "newsletter",
         rowKey: crypto.randomUUID(),
-        email,
+        type,
+        value,
         createdAt: new Date().toISOString()
       };
 
@@ -57,8 +104,9 @@ app.http("saveEmail", {
         status: 200,
         jsonBody: {
           success: true,
-          message: "Email saved successfully.",
-          email
+          message: "Signup saved successfully.",
+          type,
+          value
         }
       };
 
@@ -69,7 +117,7 @@ app.http("saveEmail", {
         status: 500,
         jsonBody: {
           success: false,
-          message: "Unable to save email."
+          message: "Unable to save signup."
         }
       };
     }
