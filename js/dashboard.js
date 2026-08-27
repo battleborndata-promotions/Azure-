@@ -2,10 +2,11 @@
   Battle Born Promotions
   Staff Redemption Dashboard
 
-  Customer lookup is live.
+  Live customer lookup:
+  GET /api/findCustomer
 
-  Redemption is NOT connected
-  to Azure yet.
+  Live promotion redemption:
+  POST /api/redeemPromotion
 */
 
 
@@ -101,6 +102,34 @@ function setMessage(
 
 
 /*
+  FORMAT REDEMPTION DATE
+*/
+
+function formatDate(
+  value
+) {
+
+  if (!value) {
+    return null;
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return date.toLocaleString();
+
+}
+
+
+/*
   CUSTOMER DISPLAY
 */
 
@@ -162,29 +191,25 @@ function renderCustomer(
     redeemButton.textContent =
       "Already Redeemed";
 
-    redeemButton.disabled = true;
+    redeemButton.disabled =
+      true;
 
     redeemButton.classList.add(
       "used"
     );
 
 
-    /*
-      SHOW REDEMPTION TIME
-    */
+    const formattedDate =
+      formatDate(
+        customer.promotionUsedAt
+      );
 
-    if (
-      customer.promotionUsedAt
-    ) {
 
-      const usedDate =
-        new Date(
-          customer.promotionUsedAt
-        );
+    if (formattedDate) {
 
       redeemedAt.textContent =
         "Redeemed: " +
-        usedDate.toLocaleString();
+        formattedDate;
 
     } else {
 
@@ -218,20 +243,37 @@ function renderCustomer(
     redeemButton.textContent =
       "Mark Promotion as Used";
 
-    redeemButton.disabled = false;
+    redeemButton.disabled =
+      false;
 
     redeemButton.classList.remove(
       "used"
     );
 
 
-    redeemedAt.textContent = "";
+    redeemedAt.textContent =
+      "";
 
     redeemedAt.classList.remove(
       "visible"
     );
 
   }
+
+}
+
+
+/*
+  CLEAR RESULT
+*/
+
+function clearResult() {
+
+  currentCustomer = null;
+
+  resultCard.classList.remove(
+    "visible"
+  );
 
 }
 
@@ -262,9 +304,7 @@ lookupForm.addEventListener(
         "error"
       );
 
-      resultCard.classList.remove(
-        "visible"
-      );
+      clearResult();
 
       return;
 
@@ -275,15 +315,14 @@ lookupForm.addEventListener(
       SEARCHING STATE
     */
 
-    searchButton.disabled = true;
+    searchButton.disabled =
+      true;
 
     setMessage(
       "Searching…"
     );
 
-    resultCard.classList.remove(
-      "visible"
-    );
+    clearResult();
 
 
     try {
@@ -316,8 +355,6 @@ lookupForm.addEventListener(
           "No customer found.",
           "error"
         );
-
-        currentCustomer = null;
 
         return;
 
@@ -382,9 +419,7 @@ lookupForm.addEventListener(
       );
 
 
-      resultCard.classList.remove(
-        "visible"
-      );
+      clearResult();
 
 
     } finally {
@@ -440,25 +475,190 @@ cancelRedeem.addEventListener(
 
 /*
   CONFIRM REDEMPTION
-
-  This is intentionally not
-  connected to Azure yet.
-
-  Next step:
-  /api/redeemPromotion
 */
 
 confirmRedeem.addEventListener(
   "click",
-  () => {
+  async () => {
 
-    modalBackdrop.hidden =
+    if (!currentCustomer) {
+      return;
+    }
+
+
+    /*
+      DISABLE BUTTON WHILE
+      AZURE PROCESSES REQUEST
+    */
+
+    confirmRedeem.disabled =
       true;
 
 
     setMessage(
-      "Redemption API is not connected yet."
+      "Redeeming promotion…"
     );
+
+
+    try {
+
+      /*
+        CALL REDEMPTION API
+      */
+
+      const response =
+        await fetch(
+          "/api/redeemPromotion",
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+
+              partitionKey:
+                currentCustomer.partitionKey,
+
+              rowKey:
+                currentCustomer.rowKey
+
+            })
+
+          }
+        );
+
+
+      /*
+        READ RESPONSE BODY
+      */
+
+      let data = {};
+
+      try {
+
+        data =
+          await response.json();
+
+      } catch (error) {
+
+        data = {};
+
+      }
+
+
+      /*
+        PROMOTION WAS ALREADY USED
+
+        Backend returns 409.
+      */
+
+      if (
+        response.status === 409
+      ) {
+
+        currentCustomer.promotionUsed =
+          true;
+
+        currentCustomer.promotionUsedAt =
+          data.promotionUsedAt ||
+          currentCustomer.promotionUsedAt ||
+          null;
+
+
+        modalBackdrop.hidden =
+          true;
+
+
+        renderCustomer(
+          currentCustomer
+        );
+
+
+        setMessage(
+          "This promotion was already used."
+        );
+
+
+        return;
+
+      }
+
+
+      /*
+        OTHER API ERROR
+      */
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          "Redemption failed."
+        );
+
+      }
+
+
+      /*
+        SUCCESS
+
+        Update browser state using
+        the values returned by Azure.
+      */
+
+      currentCustomer.promotionUsed =
+        true;
+
+      currentCustomer.promotionUsedAt =
+        data.promotionUsedAt ||
+        new Date().toISOString();
+
+
+      /*
+        CLOSE MODAL
+      */
+
+      modalBackdrop.hidden =
+        true;
+
+
+      /*
+        IMMEDIATELY UPDATE UI
+      */
+
+      renderCustomer(
+        currentCustomer
+      );
+
+
+      setMessage(
+        "Promotion redeemed successfully."
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Promotion redemption error:",
+        error
+      );
+
+
+      setMessage(
+        "Unable to redeem promotion. Please try again.",
+        "error"
+      );
+
+
+    } finally {
+
+      confirmRedeem.disabled =
+        false;
+
+    }
 
   }
 );
@@ -475,6 +675,28 @@ modalBackdrop.addEventListener(
     if (
       event.target ===
       modalBackdrop
+    ) {
+
+      modalBackdrop.hidden =
+        true;
+
+    }
+
+  }
+);
+
+
+/*
+  ESCAPE KEY
+*/
+
+document.addEventListener(
+  "keydown",
+  (event) => {
+
+    if (
+      event.key === "Escape" &&
+      !modalBackdrop.hidden
     ) {
 
       modalBackdrop.hidden =
