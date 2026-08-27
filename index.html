@@ -3,65 +3,177 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Battle Born Data — built in Nevada, powered by you.">
-  <title>Battle Born Data | Join the Network</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta
+    name="description"
+    content="Battle Born Data — built in Nevada, powered by you."
+  >
 
+  <title>Battle Born Data | Join the Network</title>
+
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
+
   <div class="glow one"></div>
   <div class="glow two"></div>
 
   <main>
+
     <div class="logo-wrap">
-      <img class="logo" src="images/logo.jpeg" alt="Battle Born Data — Built in Nevada, Powered by You">
+      <img
+        class="logo"
+        src="images/logo.jpeg"
+        alt="Battle Born Data — Built in Nevada, Powered by You"
+      >
     </div>
 
     <div class="divider"></div>
 
     <div class="eyebrow">Battle Born Data</div>
+
     <h1>Join the Network</h1>
+
     <p class="subtitle">
       Get updates, Nevada data stories, product news, and announcements
       from <span class="accent">Battle Born Data</span>.
     </p>
 
-    <div class="form-card">
-      <form id="newsletterForm" novalidate>
+
+    <!-- EMAIL / PHONE SELECTOR -->
+
+    <div
+      class="signup-type"
+      role="radiogroup"
+      aria-label="Choose how to sign up"
+    >
+
+      <label>
         <input
-          id="email"
-          name="email"
+          type="radio"
+          name="signupType"
+          value="email"
+          checked
+        >
+        Email
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="signupType"
+          value="phone"
+        >
+        Phone
+      </label>
+
+    </div>
+
+
+    <!-- SIGNUP FORM -->
+
+    <div class="form-card">
+
+      <form id="newsletterForm" novalidate>
+
+        <input
+          id="contact"
+          name="contact"
           type="email"
           autocomplete="email"
+          inputmode="email"
           placeholder="ENTER YOUR EMAIL ADDRESS"
           aria-label="Email address"
           required
         >
-        <button id="submitButton" type="submit">Join Newsletter</button>
+
+        <button
+          id="submitButton"
+          type="submit"
+        >
+          Join Newsletter
+        </button>
+
       </form>
+
     </div>
 
-    <div id="message" class="message" role="status" aria-live="polite"></div>
+
+    <!-- VALIDATION / ERROR MESSAGE -->
+
+    <div
+      id="message"
+      class="message"
+      role="status"
+      aria-live="polite"
+    ></div>
+
 
     <footer>
-      Built in <span class="accent">Nevada</span> · Powered by You
+      Built in
+      <span class="accent">Nevada</span>
+      · Powered by You
     </footer>
+
   </main>
 
-  <div id="successModal" class="success-modal-backdrop" role="dialog"
-       aria-modal="true" aria-labelledby="successTitle" hidden>
+
+  <!-- SUCCESS MODAL -->
+
+  <div
+    id="successModal"
+    class="success-modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="successTitle"
+    hidden
+  >
+
     <div class="success-modal">
-      <button id="closeSuccessModal" class="success-modal-close"
-              type="button" aria-label="Close">×</button>
-      <div class="success-check" aria-hidden="true">✓</div>
-      <h2 id="successTitle">You're on the list</h2>
+
+      <button
+        id="closeSuccessModal"
+        class="success-modal-close"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+      <div
+        class="success-check"
+        aria-hidden="true"
+      >
+        ✓
+      </div>
+
+      <h2 id="successTitle">
+        You're on the list
+      </h2>
+
       <p>
-        Thanks for joining the <span class="accent">Battle Born Data</span> network.
-        Your email was submitted successfully.
-        <span id="successEmail" class="success-email"></span>
+        Thanks for joining the
+        <span class="accent">Battle Born Data</span>
+        network.
+
+        Your contact information was submitted successfully.
+
+        <span
+          id="successContact"
+          class="success-email"
+        ></span>
       </p>
+
     </div>
+
   </div>
+
+
+  <!--
+    v=2 forces browsers such as mobile Safari
+    to retrieve the newest version of script.js
+  -->
+
   <script src="js/script.js"></script>
 
 </body>
