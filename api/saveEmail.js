@@ -1,11 +1,11 @@
 const { app } = require("@azure/functions");
-const { TableClient } = require("@azure/data-tables");
 const crypto = require("crypto");
 
 app.http("saveEmail", {
   methods: ["POST"],
   authLevel: "anonymous",
   route: "saveEmail",
+
   handler: async (request, context) => {
     try {
       const body = await request.json();
@@ -21,7 +21,8 @@ app.http("saveEmail", {
         };
       }
 
-      const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+      const connectionString =
+        process.env.AZURE_STORAGE_CONNECTION_STRING;
 
       if (!connectionString) {
         context.error("Storage connection string is missing.");
@@ -34,6 +35,9 @@ app.http("saveEmail", {
           }
         };
       }
+
+      // Load Azure Tables only after the function route is already registered.
+      const { TableClient } = require("@azure/data-tables");
 
       const tableClient = TableClient.fromConnectionString(
         connectionString,
@@ -57,6 +61,7 @@ app.http("saveEmail", {
           email
         }
       };
+
     } catch (error) {
       context.error("saveEmail error:", error);
 
