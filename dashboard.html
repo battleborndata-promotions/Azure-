@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Battle Born Promotions | Staff Tool</title>
+
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+
+  <div class="app">
+
+    <header class="topbar">
+
+      <div class="brand">
+
+        <img
+          src="images/logo.jpeg"
+          alt="Battle Born Promotions"
+        >
+
+        <div>
+          <div class="brand-title">
+            Battle Born Promotions
+          </div>
+
+          <div class="brand-sub">
+            Promotion Redemption System
+          </div>
+        </div>
+
+      </div>
+
+      <div class="badge">
+        Staff Tool
+      </div>
+
+    </header>
+
+
+    <div class="grid">
+
+      <!-- SEARCH PANEL -->
+
+      <section class="card search">
+
+        <div class="eyebrow">
+          Customer Lookup
+        </div>
+
+        <h1>
+          Find & Redeem
+        </h1>
+
+        <p class="sub">
+          Search by email address or phone number,
+          verify promotion status, and redeem the offer.
+        </p>
+
+
+        <form id="lookupForm">
+
+          <div class="searchrow">
+
+            <input
+              id="lookupInput"
+              type="text"
+              autocomplete="off"
+              placeholder="Email or phone number"
+              aria-label="Email or phone number"
+            >
+
+            <button
+              id="searchButton"
+              type="submit"
+            >
+              Search
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="message"
+          class="hint"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+      </section>
+
+
+      <!-- CUSTOMER RESULT -->
+
+      <section
+        id="resultCard"
+        class="card result"
+      >
+
+        <div class="resulthead">
+
+          <div class="resultlabel">
+            Customer Record
+          </div>
+
+          <div
+            id="statusPill"
+            class="status"
+          >
+
+            <span class="dot"></span>
+
+            <span id="statusText">
+              Available
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="body">
+
+          <div class="fields">
+
+            <div class="field">
+
+              <div class="label">
+                Customer
+              </div>
+
+              <div
+                id="customerValue"
+                class="value"
+              >
+                —
+              </div>
+
+            </div>
+
+
+            <div class="field">
+
+              <div class="label">
+                Signup Method
+              </div>
+
+              <div
+                id="customerType"
+                class="value"
+              >
+                —
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="promo">
+
+            <div class="label">
+              Promotion
+            </div>
+
+            <strong>
+              Buy One, Get One
+            </strong>
+
+            <div class="note">
+              One-time offer. Redemption permanently
+              marks this promotion as used.
+            </div>
+
+            <div
+              id="redeemedAt"
+              class="usedat"
+            ></div>
+
+          </div>
+
+
+          <button
+            id="redeemButton"
+            class="redeem"
+            type="button"
+          >
+            Mark Promotion as Used
+          </button>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </div>
+
+
+  <!-- CONFIRMATION MODAL -->
+
+  <div
+    id="modalBackdrop"
+    class="modalbg"
+    hidden
+  >
+
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmTitle"
+    >
+
+      <h2 id="confirmTitle">
+        Confirm Redemption
+      </h2>
+
+      <p>
+        Mark this customer's Buy One, Get One
+        promotion as used?
+      </p>
+
+      <div class="actions">
+
+        <button
+          id="cancelRedeem"
+          class="cancel"
+          type="button"
+        >
+          Cancel
+        </button>
+
+        <button
+          id="confirmRedeem"
+          type="button"
+        >
+          Confirm
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script src="js/dashboard.js"></script>
+
+</body>
+</html>
