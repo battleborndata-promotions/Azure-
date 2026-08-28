@@ -1,4 +1,5 @@
 const { app } = require("@azure/functions");
+const { validateSession } = require("../validateSession");
 
 app.http("findCustomer", {
   methods: ["GET"],
@@ -7,7 +8,23 @@ app.http("findCustomer", {
 
   handler: async (request, context) => {
     try {
-      const rawValue = request.query.get("value");
+      const session = await validateSession(
+        request,
+        context
+      );
+
+      if (!session.valid) {
+        return {
+          status: 401,
+          jsonBody: {
+            success: false,
+            message: "Unauthorized."
+          }
+        };
+      }
+
+      const rawValue =
+        request.query.get("value");
 
       if (!rawValue) {
         return {
@@ -19,19 +36,24 @@ app.http("findCustomer", {
         };
       }
 
-      let searchValue = rawValue.trim().toLowerCase();
+      let searchValue =
+        rawValue.trim().toLowerCase();
 
-      const isEmail = searchValue.includes("@");
+      const isEmail =
+        searchValue.includes("@");
 
       if (!isEmail) {
-        searchValue = searchValue.replace(/\D/g, "");
+        searchValue =
+          searchValue.replace(/\D/g, "");
       }
 
       const connectionString =
         process.env.AZURE_STORAGE_CONNECTION_STRING;
 
       if (!connectionString) {
-        context.error("Storage connection string is missing.");
+        context.error(
+          "Storage connection string is missing."
+        );
 
         return {
           status: 500,
@@ -53,9 +75,11 @@ app.http("findCustomer", {
 
       let foundCustomer = null;
 
-      const entities = tableClient.listEntities();
+      const entities =
+        tableClient.listEntities();
 
       for await (const entity of entities) {
+
         let storedValue =
           entity.value ??
           entity.email ??
@@ -71,7 +95,9 @@ app.http("findCustomer", {
             storedValue.replace(/\D/g, "");
         }
 
-        if (storedValue === searchValue) {
+        if (
+          storedValue === searchValue
+        ) {
           foundCustomer = entity;
           break;
         }
@@ -101,7 +127,9 @@ app.http("findCustomer", {
 
             type:
               foundCustomer.type ??
-              (isEmail ? "email" : "phone"),
+              (isEmail
+                ? "email"
+                : "phone"),
 
             value:
               foundCustomer.value ??
@@ -111,15 +139,18 @@ app.http("findCustomer", {
               foundCustomer.promotionUsed === true,
 
             promotionUsedAt:
-              foundCustomer.promotionUsedAt ?? null,
+              foundCustomer.promotionUsedAt ??
+              null,
 
             createdAt:
-              foundCustomer.createdAt ?? null
+              foundCustomer.createdAt ??
+              null
           }
         }
       };
 
     } catch (error) {
+
       context.error(
         "findCustomer error:",
         error
@@ -129,9 +160,10 @@ app.http("findCustomer", {
         status: 500,
         jsonBody: {
           success: false,
-          message: "Unable to search for customer."
+          message:
+            "Unable to search for customer."
         }
       };
     }
   }
-});
+}); 
