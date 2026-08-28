@@ -1,4 +1,5 @@
 const { app } = require("@azure/functions");
+const { validateSession } = require("../validateSession");
 
 app.http("redeemPromotion", {
   methods: ["POST"],
@@ -7,13 +8,41 @@ app.http("redeemPromotion", {
 
   handler: async (request, context) => {
     try {
-      const body = await request.json();
+
+      /*
+        REQUIRE STAFF SESSION
+      */
+
+      const session =
+        await validateSession(
+          request,
+          context
+        );
+
+      if (!session.valid) {
+        return {
+          status: 401,
+          jsonBody: {
+            success: false,
+            message: "Unauthorized."
+          }
+        };
+      }
+
+
+      /*
+        READ REQUEST
+      */
+
+      const body =
+        await request.json();
 
       const partitionKey =
         body?.partitionKey;
 
       const rowKey =
         body?.rowKey;
+
 
       if (!partitionKey || !rowKey) {
         return {
@@ -26,10 +55,18 @@ app.http("redeemPromotion", {
         };
       }
 
+
+      /*
+        STORAGE CONNECTION
+      */
+
       const connectionString =
-        process.env.AZURE_STORAGE_CONNECTION_STRING;
+        process.env
+          .AZURE_STORAGE_CONNECTION_STRING;
+
 
       if (!connectionString) {
+
         context.error(
           "Storage connection string is missing."
         );
@@ -44,8 +81,10 @@ app.http("redeemPromotion", {
         };
       }
 
+
       const { TableClient } =
         require("@azure/data-tables");
+
 
       const tableClient =
         TableClient.fromConnectionString(
@@ -53,19 +92,24 @@ app.http("redeemPromotion", {
           "newsletter"
         );
 
+
       /*
-        Fetch the exact customer entity.
+        FIND CUSTOMER
       */
 
       let customer;
 
+
       try {
+
         customer =
           await tableClient.getEntity(
             partitionKey,
             rowKey
           );
+
       } catch (error) {
+
         if (error.statusCode === 404) {
           return {
             status: 404,
@@ -80,17 +124,21 @@ app.http("redeemPromotion", {
         throw error;
       }
 
+
       /*
-        Prevent duplicate redemption.
+        ALREADY REDEEMED
       */
 
       if (
         customer.promotionUsed === true
       ) {
+
         return {
           status: 409,
+
           jsonBody: {
             success: false,
+
             message:
               "Promotion already used.",
 
@@ -103,31 +151,37 @@ app.http("redeemPromotion", {
         };
       }
 
+
       /*
-        Mark promotion as used.
+        REDEEM PROMOTION
       */
 
       const promotionUsedAt =
         new Date().toISOString();
+
 
       customer.promotionUsed = true;
 
       customer.promotionUsedAt =
         promotionUsedAt;
 
-      /*
-        Update the existing entity.
-      */
 
       await tableClient.updateEntity(
         customer,
         "Merge"
       );
 
+
+      /*
+        SUCCESS
+      */
+
       return {
         status: 200,
+
         jsonBody: {
           success: true,
+
           message:
             "Promotion redeemed successfully.",
 
@@ -137,14 +191,18 @@ app.http("redeemPromotion", {
         }
       };
 
+
     } catch (error) {
+
       context.error(
         "redeemPromotion error:",
         error
       );
 
+
       return {
         status: 500,
+
         jsonBody: {
           success: false,
           message:
