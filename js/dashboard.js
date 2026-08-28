@@ -2,6 +2,9 @@
   Battle Born Promotions
   Staff Redemption Dashboard
 
+  Session validation:
+  GET /api/checkSession
+
   Live customer lookup:
   GET /api/findCustomer
 
@@ -9,6 +12,79 @@
   POST /api/redeemPromotion
 */
 
+
+/*
+  SESSION CHECK
+*/
+
+async function requireStaffSession() {
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/checkSession",
+        {
+          method: "GET",
+          credentials: "same-origin"
+        }
+      );
+
+
+    if (!response.ok) {
+
+      window.location.replace(
+        "/login.html"
+      );
+
+      return false;
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      !data.authenticated
+    ) {
+
+      window.location.replace(
+        "/login.html"
+      );
+
+      return false;
+
+    }
+
+
+    return true;
+
+
+  } catch (error) {
+
+    console.error(
+      "Session check failed:",
+      error
+    );
+
+
+    window.location.replace(
+      "/login.html"
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+/*
+  PAGE ELEMENTS
+*/
 
 const lookupForm =
   document.getElementById(
@@ -338,9 +414,30 @@ lookupForm.addEventListener(
 
           encodeURIComponent(
             searchValue
-          )
+          ),
+
+          {
+            credentials: "same-origin"
+          }
 
         );
+
+
+      /*
+        SESSION EXPIRED / NOT LOGGED IN
+      */
+
+      if (
+        response.status === 401
+      ) {
+
+        window.location.replace(
+          "/login.html"
+        );
+
+        return;
+
+      }
 
 
       /*
@@ -513,6 +610,8 @@ confirmRedeem.addEventListener(
 
             method: "POST",
 
+            credentials: "same-origin",
+
             headers: {
               "Content-Type":
                 "application/json"
@@ -530,6 +629,23 @@ confirmRedeem.addEventListener(
 
           }
         );
+
+
+      /*
+        SESSION EXPIRED / NOT LOGGED IN
+      */
+
+      if (
+        response.status === 401
+      ) {
+
+        window.location.replace(
+          "/login.html"
+        );
+
+        return;
+
+      }
 
 
       /*
@@ -706,3 +822,10 @@ document.addEventListener(
 
   }
 );
+
+
+/*
+  INITIAL STAFF SESSION CHECK
+*/
+
+requireStaffSession();
