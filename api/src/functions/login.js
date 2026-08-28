@@ -133,16 +133,18 @@ app.http("login", {
           message: "Login successful."
         }
       };
-    } catch (error) {
-      context.error("login error:", error);
+     } catch (error) {
+  context.error("login error:", error);
 
-      return {
-        status: 500,
-        jsonBody: {
-          success: false,
-          message: "Unable to sign in."
-        }
-      };
+  return {
+    status: 500,
+    jsonBody: {
+      success: false,
+      message: "Unable to sign in.",
+      error: error.message
     }
+  };
+} 
+ 
   }
 });
