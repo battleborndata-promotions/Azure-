@@ -86,6 +86,12 @@ async function requireStaffSession() {
   PAGE ELEMENTS
 */
 
+const logoutButton =
+  document.getElementById(
+    "logoutButton"
+  );
+
+
 const lookupForm =
   document.getElementById(
     "lookupForm"
@@ -823,6 +829,61 @@ document.addEventListener(
   }
 );
 
+
+/*
+  LOG OUT
+*/
+
+logoutButton.addEventListener(
+  "click",
+  async () => {
+
+    logoutButton.disabled = true;
+    logoutButton.textContent = "LOGGING OUT...";
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/logout",
+          {
+            method: "POST",
+            credentials: "same-origin"
+          }
+        );
+
+
+      if (!response.ok) {
+        throw new Error(
+          "Logout failed."
+        );
+      }
+
+
+      window.location.replace(
+        "/login.html"
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Logout error:",
+        error
+      );
+
+      setMessage(
+        "Unable to log out. Please try again.",
+        "error"
+      );
+
+      logoutButton.disabled = false;
+      logoutButton.textContent = "LOG OUT";
+
+    }
+
+  }
+);
 
 /*
   INITIAL STAFF SESSION CHECK
