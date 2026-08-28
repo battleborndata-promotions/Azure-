@@ -2,22 +2,44 @@ const { app } = require("@azure/functions");
 const { TableClient } = require("@azure/data-tables");
 const crypto = require("crypto");
 
-function verifyPassword(password, storedPasswordHash) {
+
+function verifyPassword(
+  password,
+  storedPasswordHash
+) {
   try {
-    const [salt, storedHash] = storedPasswordHash.split(":");
+    const [salt, storedHash] =
+      storedPasswordHash.split(":");
 
     if (!salt || !storedHash) {
       return false;
     }
 
-    const calculatedHash = crypto
-      .scryptSync(password, salt, 64)
-      .toString("hex");
+    const calculatedHash =
+      crypto
+        .scryptSync(
+          password,
+          salt,
+          64
+        )
+        .toString("hex");
 
-    const storedBuffer = Buffer.from(storedHash, "hex");
-    const calculatedBuffer = Buffer.from(calculatedHash, "hex");
+    const storedBuffer =
+      Buffer.from(
+        storedHash,
+        "hex"
+      );
 
-    if (storedBuffer.length !== calculatedBuffer.length) {
+    const calculatedBuffer =
+      Buffer.from(
+        calculatedHash,
+        "hex"
+      );
+
+    if (
+      storedBuffer.length !==
+      calculatedBuffer.length
+    ) {
       return false;
     }
 
@@ -25,32 +47,55 @@ function verifyPassword(password, storedPasswordHash) {
       storedBuffer,
       calculatedBuffer
     );
+
   } catch {
     return false;
   }
 }
+
 
 app.http("login", {
   methods: ["POST"],
   authLevel: "anonymous",
   route: "login",
 
-  handler: async (request, context) => {
-    try {
-      const body = await request.json();
+  handler: async (
+    request,
+    context
+  ) => {
 
-      const username = body?.username?.trim();
-      const password = body?.password;
+    try {
+
+      /*
+        READ LOGIN REQUEST
+      */
+
+      const body =
+        await request.json();
+
+      const username =
+        body?.username?.trim();
+
+      const password =
+        body?.password;
+
 
       if (!username || !password) {
         return {
           status: 400,
+
           jsonBody: {
             success: false,
-            message: "Username and password are required."
+            message:
+              "Username and password are required."
           }
         };
       }
+
+
+      /*
+        AUTH CONFIGURATION
+      */
 
       const expectedUsername =
         process.env.STAFF_USERNAME;
@@ -59,100 +104,159 @@ app.http("login", {
         process.env.STAFF_PASSWORD_HASH;
 
       const connectionString =
-        process.env.AZURE_STORAGE_CONNECTION_STRING;
+        process.env
+          .AZURE_STORAGE_CONNECTION_STRING;
+
 
       if (
         !expectedUsername ||
         !storedPasswordHash ||
         !connectionString
       ) {
+
         context.error(
           "Authentication configuration is missing."
         );
 
         return {
           status: 500,
+
           jsonBody: {
             success: false,
-            message: "Authentication is not configured."
+            message:
+              "Unable to sign in."
           }
         };
       }
+
+
+      /*
+        VERIFY CREDENTIALS
+      */
 
       const usernameMatches =
-  username.toLowerCase() === expectedUsername.trim().toLowerCase();
+        username.toLowerCase() ===
+        expectedUsername
+          .trim()
+          .toLowerCase();
 
-      const passwordMatches = verifyPassword(
-        password,
-        storedPasswordHash
-      );
 
-      if (!usernameMatches || !passwordMatches) {
+      const passwordMatches =
+        verifyPassword(
+          password,
+          storedPasswordHash
+        );
+
+
+      if (
+        !usernameMatches ||
+        !passwordMatches
+      ) {
+
         return {
           status: 401,
+
           jsonBody: {
             success: false,
-            message: "Invalid username or password."
+            message:
+              "Invalid username or password."
           }
         };
       }
 
-      // Generate a cryptographically random session ID.
-      const sessionId = crypto
-        .randomBytes(32)
-        .toString("hex");
 
-      const createdAt = new Date();
+      /*
+        CREATE SESSION
+      */
 
-      // Session lasts for 8 hours.
-      const expiresAt = new Date(
-        createdAt.getTime() + 8 * 60 * 60 * 1000
-      );
+      const sessionId =
+        crypto
+          .randomBytes(32)
+          .toString("hex");
 
-      const tableClient =
-        TableClient.fromConnectionString(
-          connectionString,
-          "staffSessions"
+
+      const createdAt =
+        new Date();
+
+
+      const expiresAt =
+        new Date(
+          createdAt.getTime() +
+          8 * 60 * 60 * 1000
         );
 
-      // Store the session on the server.
+
+      const tableClient =
+        TableClient
+          .fromConnectionString(
+            connectionString,
+            "staffSessions"
+          );
+
+
       await tableClient.createEntity({
         partitionKey: "session",
+
         rowKey: sessionId,
-        username: username,
-        createdAt: createdAt.toISOString(),
-        expiresAt: expiresAt.toISOString()
+
+        username:
+          expectedUsername
+            .trim()
+            .toLowerCase(),
+
+        createdAt:
+          createdAt.toISOString(),
+
+        expiresAt:
+          expiresAt.toISOString()
       });
 
-      // Send only the random session ID to the browser.
-      // JavaScript in the browser cannot read an HttpOnly cookie.
+
+      /*
+        SET SESSION COOKIE
+      */
+
       return {
         status: 200,
 
         headers: {
           "Set-Cookie":
             `bb_session=${sessionId}; ` +
-            `HttpOnly; Secure; SameSite=Strict; ` +
-            `Path=/; Max-Age=28800`
+            `HttpOnly; ` +
+            `Secure; ` +
+            `SameSite=Strict; ` +
+            `Path=/; ` +
+            `Max-Age=28800`
         },
 
         jsonBody: {
           success: true,
-          message: "Login successful."
+          message:
+            "Login successful."
         }
       };
 
-    } catch (error) {
-      context.error("login error:", error);
 
-      // TEMPORARY detailed error for debugging.
-      // We'll remove error.message once login is working.
+    } catch (error) {
+
+      /*
+        KEEP DETAILED ERROR
+        IN AZURE LOGS ONLY
+      */
+
+      context.error(
+        "login error:",
+        error
+      );
+
+
       return {
         status: 500,
+
         jsonBody: {
           success: false,
-          message: "Unable to sign in.",
-          error: error.message
+          message:
+            "Unable to sign in."
         }
       };
     }
