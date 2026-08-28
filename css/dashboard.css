@@ -681,27 +681,84 @@ button:disabled {
   }
 
 }
+/*
+  TOP BAR ACTIONS
+*/
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  flex: 0 0 auto;
+}
+
+
+/*
+  LOGOUT BUTTON
+*/
+
 .logout-button {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: transparent;
-  color: #ffffff;
+  min-height: 34px;
 
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 7px 11px;
 
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  border: 1px solid #454943;
+
+  border-radius: 0;
+
+  background: #111311;
+
+  color: #a7aaa4;
+
+  font-size: .64rem;
+  font-weight: 900;
+
+  letter-spacing: .11em;
+
+  text-transform: uppercase;
 
   cursor: pointer;
+
+  transition:
+    border-color .15s ease,
+    color .15s ease,
+    background .15s ease;
 }
 
 .logout-button:hover {
-  border-color: #b8ff00;
-  color: #b8ff00;
+  border-color: rgba(183, 214, 0, .65);
+
+  background: #151815;
+
+  color: var(--bright);
 }
 
 .logout-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  opacity: .5;
+
+  cursor: wait;
+}
+
+
+/*
+  MOBILE TOP BAR
+*/
+
+@media (max-width: 620px) {
+
+  .topbar-actions {
+    gap: 7px;
+  }
+
+  .logout-button {
+    min-height: 32px;
+
+    padding: 6px 9px;
+
+    font-size: .58rem;
+
+    letter-spacing: .08em;
+  }
+
 }
