@@ -80,7 +80,7 @@ app.http("login", {
       }
 
       const usernameMatches =
-        username === expectedUsername;
+  username.toLowerCase() === expectedUsername.trim().toLowerCase();
 
       const passwordMatches = verifyPassword(
         password,
