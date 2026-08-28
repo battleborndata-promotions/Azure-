@@ -52,9 +52,12 @@ app.http("login", {
         };
       }
 
-      const expectedUsername = process.env.STAFF_USERNAME;
+      const expectedUsername =
+        process.env.STAFF_USERNAME;
+
       const storedPasswordHash =
         process.env.STAFF_PASSWORD_HASH;
+
       const connectionString =
         process.env.AZURE_STORAGE_CONNECTION_STRING;
 
@@ -94,12 +97,14 @@ app.http("login", {
         };
       }
 
-      // Create a cryptographically random session ID.
+      // Generate a cryptographically random session ID.
       const sessionId = crypto
         .randomBytes(32)
         .toString("hex");
 
       const createdAt = new Date();
+
+      // Session lasts for 8 hours.
       const expiresAt = new Date(
         createdAt.getTime() + 8 * 60 * 60 * 1000
       );
@@ -110,14 +115,17 @@ app.http("login", {
           "staffSessions"
         );
 
+      // Store the session on the server.
       await tableClient.createEntity({
         partitionKey: "session",
         rowKey: sessionId,
-        username,
+        username: username,
         createdAt: createdAt.toISOString(),
         expiresAt: expiresAt.toISOString()
       });
 
+      // Send only the random session ID to the browser.
+      // JavaScript in the browser cannot read an HttpOnly cookie.
       return {
         status: 200,
 
@@ -133,18 +141,20 @@ app.http("login", {
           message: "Login successful."
         }
       };
-     } catch (error) {
-  context.error("login error:", error);
 
-  return {
-    status: 500,
-    jsonBody: {
-      success: false,
-      message: "Unable to sign in.",
-      error: error.message
+    } catch (error) {
+      context.error("login error:", error);
+
+      // TEMPORARY detailed error for debugging.
+      // We'll remove error.message once login is working.
+      return {
+        status: 500,
+        jsonBody: {
+          success: false,
+          message: "Unable to sign in.",
+          error: error.message
+        }
+      };
     }
-  };
-} 
- 
   }
 });
