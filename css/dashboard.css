@@ -178,7 +178,7 @@ body::before {
 
   align-items: flex-end;
 
-  gap: 5px;
+  gap: 7px;
 
   flex: 0 0 auto;
 }
@@ -210,29 +210,50 @@ body::before {
 */
 
 .logout-button {
-  padding: 0;
+  min-width: 0;
 
-  border: 0;
+  padding: 6px 11px;
 
-  background: transparent;
+  border: 1px solid #52564f;
 
-  color: #777a73;
+  border-radius: 2px;
+
+  background: #0d0f0e;
+
+  color: #b7bab1;
 
   font-size: .60rem;
-  font-weight: 800;
+  font-weight: 900;
 
   letter-spacing: .10em;
 
   text-transform: uppercase;
 
   cursor: pointer;
+
+  transition:
+    border-color .16s ease,
+    color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
 }
 
 
 .logout-button:hover {
+  border-color: var(--lime);
+
+  background: #121511;
+
   color: var(--bright);
 
-  background: transparent;
+  box-shadow:
+    0 0 14px
+    rgba(183, 214, 0, .10);
+}
+
+
+.logout-button:active {
+  background: #090b09;
 }
 
 
@@ -832,6 +853,8 @@ button:disabled {
 
 
   .logout-button {
+    padding: 5px 9px;
+
     font-size: .56rem;
 
     letter-spacing: .08em;
