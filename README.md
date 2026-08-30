@@ -290,6 +290,8 @@ The vanilla implementation focuses on:
 
 ## Security Notes
 
+For the demo I kept the infrastructure lightweight. In production, I would put Azure Front Door/WAF in front of the public endpoints and configure rate limiting for authentication and signup traffic. 
+
 The application currently implements:
 
 - Server-side password verification
